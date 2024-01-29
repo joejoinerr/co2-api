@@ -11,6 +11,21 @@ python = "^3.10"
 fastapi = "^0.109.0"
 uvicorn = {extras = ["standard"], version = "^0.27.0"}
 
+[tool.poetry.group.dev.dependencies]
+pre-commit = "^3.6.0"
+black = "^24.1.0"
+
+[tool.ruff]
+select = ["E", "F", "I", "C90", "B", "N", "D", "ANN", "TRY", "RUF200", "UP"]
+ignore = ["E501", "B904", "ANN101", "ANN003"]
+src = ["src"]
+fix = true
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401", "F403", "E402"]
+
+[tool.ruff.pydocstyle]
+convention = "google"
 
 [build-system]
 requires = ["poetry-core"]
