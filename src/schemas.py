@@ -30,3 +30,4 @@ class LatestReadings(pydantic.BaseModel):
 
     co2_ppm_latest: Annotated[int, pydantic.Field(gt=0)]
     co2_ppm_average_1h: Annotated[float, pydantic.Field(gt=0)]
+    last_reading_time: datetime.datetime

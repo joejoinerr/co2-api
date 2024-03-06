@@ -44,24 +44,25 @@ app = FastAPI(
 @app.get("/api/latest")
 async def get_latest_readings() -> LatestReadings:
     """Fetches the latest and past 1h average readings."""
+    query = """\
+        SELECT
+            recorded,
+            co2_ppm,
+            temp_celsius,
+            pressure_mbar
+        FROM
+            co2
+        WHERE
+            recorded BETWEEN :time_before AND :time_after
+        ORDER BY
+            recorded DESC
+    """
+    now_timestamp = int(time.time())
+    hour_ago_timestamp = now_timestamp - (60 * 60)
+    params = {"time_before": hour_ago_timestamp, "time_after": now_timestamp}
+
     con = app.state.db
     with con:
-        query = """\
-            SELECT
-                recorded,
-                co2_ppm,
-                temp_celsius,
-                pressure_mbar
-            FROM
-                co2
-            WHERE
-                recorded BETWEEN :time_before AND :time_after
-            ORDER BY
-                recorded DESC
-        """
-        now_timestamp = int(time.time())
-        hour_ago_timestamp = now_timestamp - (60 * 60)
-        params = {"time_before": hour_ago_timestamp, "time_after": now_timestamp}
         result = con.execute(query, params).fetchall()
 
     if len(result) == 0:
@@ -72,6 +73,7 @@ async def get_latest_readings() -> LatestReadings:
     results = {
         "co2_ppm_latest": result[0]["co2_ppm"],
         "co2_ppm_average_1h": round(mean(r["co2_ppm"] for r in result), 2),
+        "last_reading_time": result[0]["recorded"]
     }
     return LatestReadings(**results)
 
