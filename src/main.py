@@ -7,7 +7,7 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from statistics import mean
 
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, BackgroundTasks, status
 
 from schemas import LatestReadings, Reading, ReadingInDB
 
@@ -79,7 +79,7 @@ async def get_latest_readings() -> LatestReadings:
 
 
 @app.post("/api/submit", status_code=status.HTTP_201_CREATED)
-async def submit_reading(reading: Reading) -> ReadingInDB:
+async def submit_reading(reading: Reading, background_tasks: BackgroundTasks) -> ReadingInDB:
     """Creates a new reading in the database."""
     con = app.state.db
     with con:
@@ -90,4 +90,13 @@ async def submit_reading(reading: Reading) -> ReadingInDB:
         result = con.execute(
             "SELECT * FROM co2 WHERE id = ?", (cur.lastrowid,)
         ).fetchone()
+    background_tasks.add_task(delete_old_entries)
     return ReadingInDB(**result)
+
+
+def delete_old_entries():
+    con = app.state.db
+    now_timestamp = int(time.time())
+    week_ago = now_timestamp - 604800
+    with con:
+        con.execute("DELETE FROM co2 WHERE recorded < ?", (week_ago,))
