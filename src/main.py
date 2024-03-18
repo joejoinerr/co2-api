@@ -4,7 +4,7 @@ import os
 import sqlite3
 import time
 from collections.abc import AsyncGenerator
-from contextlib import asynccontextmanager
+from contextlib import contextmanager
 from statistics import mean
 
 from fastapi import FastAPI, HTTPException, status
@@ -12,8 +12,8 @@ from fastapi import FastAPI, HTTPException, status
 from schemas import LatestReadings, Reading, ReadingInDB
 
 
-@asynccontextmanager
-async def lifespan(app_: FastAPI) -> AsyncGenerator[None, None]:
+@contextmanager
+def lifespan(app_: FastAPI) -> Generator[None, None]:
     """Sets up the application, including DB connection."""
     con = sqlite3.connect(os.environ["DB_PATH"])
     con.row_factory = sqlite3.Row
@@ -42,7 +42,7 @@ app = FastAPI(
 
 
 @app.get("/api/latest")
-async def get_latest_readings() -> LatestReadings:
+def get_latest_readings() -> LatestReadings:
     """Fetches the latest and past 1h average readings."""
     query = """\
         SELECT
@@ -79,7 +79,7 @@ async def get_latest_readings() -> LatestReadings:
 
 
 @app.post("/api/submit", status_code=status.HTTP_201_CREATED)
-async def submit_reading(reading: Reading) -> ReadingInDB:
+def submit_reading(reading: Reading) -> ReadingInDB:
     """Creates a new reading in the database."""
     con = app.state.db
     with con:
