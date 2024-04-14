@@ -95,7 +95,7 @@ async def submit_reading(reading: Reading, background_tasks: BackgroundTasks) ->
 
 
 def delete_old_entries():
-    con = app.state.db
+    con = sqlite3.connect(os.environ["DB_PATH"])
     now_timestamp = int(time.time())
     week_ago = now_timestamp - 604800
     with con:
