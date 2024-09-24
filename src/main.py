@@ -59,21 +59,25 @@ async def get_latest_readings() -> LatestReadings:
     """
     now_timestamp = int(time.time())
     hour_ago_timestamp = now_timestamp - (60 * 60)
-    params = {"time_before": hour_ago_timestamp, "time_after": now_timestamp}
+    hour_params = {"time_before": hour_ago_timestamp, "time_after": now_timestamp}
+    week_ago_timestamp = now_timestamp - 604800
+    week_params = {"time_before": week_ago_timestamp, "time_after": now_timestamp}
 
     con = app.state.db
     with con:
-        result = con.execute(query, params).fetchall()
+        hour_result = con.execute(query, hour_params).fetchall()
+        week_result = con.execute(query, week_params)
 
-    if len(result) == 0:
+    if len(hour_result) == 0:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="No recent readings."
         )
 
     results = {
-        "co2_ppm_latest": result[0]["co2_ppm"],
-        "co2_ppm_average_1h": round(mean(r["co2_ppm"] for r in result), 2),
-        "last_reading_time": result[0]["recorded"]
+        "co2_ppm_latest": hour_result[0]["co2_ppm"],
+        "co2_ppm_average_1h": round(mean(r["co2_ppm"] for r in hour_result), 2),
+        "co2_ppm_average_1w": round(mean(r["co2_ppm"] for r in week_result), 2)
+        "last_reading_time": hour_result[0]["recorded"]
     }
     return LatestReadings(**results)
 
