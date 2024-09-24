@@ -76,8 +76,8 @@ async def get_latest_readings() -> LatestReadings:
     results = {
         "co2_ppm_latest": hour_result[0]["co2_ppm"],
         "co2_ppm_average_1h": round(mean(r["co2_ppm"] for r in hour_result), 2),
-        "co2_ppm_average_1w": round(mean(r["co2_ppm"] for r in week_result), 2)
-        "last_reading_time": hour_result[0]["recorded"]
+        "co2_ppm_average_1w": round(mean(r["co2_ppm"] for r in week_result), 2),
+        "last_reading_time": hour_result[0]["recorded"],
     }
     return LatestReadings(**results)
 
